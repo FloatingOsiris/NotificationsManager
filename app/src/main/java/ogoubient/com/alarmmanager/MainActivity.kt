@@ -1,9 +1,12 @@
 package ogoubient.com.alarmmanager
 
 import android.app.FragmentManager
+import android.app.Notification
+import android.content.Intent
 import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
 import android.widget.Switch
 import android.widget.TimePicker
@@ -12,12 +15,15 @@ import kotlinx.android.synthetic.main.pop_time.view.*
 import java.sql.Time
 import java.text.SimpleDateFormat
 import java.util.*
+
 /**
  *This app will allow the user to set up notifications to be reminded at a specific time .
  * The switch in the middle , is made so that the notification can be cancelled , if need be .
  * Reminder that the switch need to be on , before the time is selected or it will not work.
  */
 class MainActivity : AppCompatActivity() {
+    private val notification_one = 101
+    private val notification_two = 102
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,6 +40,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    // No impact on Code , if not selected .
     fun TimePick(view: View) {
         /**
          *For automated notifications , first save the time in sharedpreferences or some other methods , then initialize
@@ -45,14 +52,14 @@ class MainActivity : AppCompatActivity() {
         val switch = alarm_switch as Switch
         tp2.setIs24HourView(true)
 
-   /*     buDone2.setOnClickListener({
-            //This is the way to reference a function that is present , in a different class .
-            if (Build.VERSION.SDK_INT >= 23) {
-                switchTester(tp2.hour, tp2.minute)
-            } else {
-                switchTester(tp2.currentHour, tp2.currentMinute)
-            }
-        })*/
+        /*     buDone2.setOnClickListener({
+                 //This is the way to reference a function that is present , in a different class .
+                 if (Build.VERSION.SDK_INT >= 23) {
+                     switchTester(tp2.hour, tp2.minute)
+                 } else {
+                     switchTester(tp2.currentHour, tp2.currentMinute)
+                 }
+             })*/
 
         alarm_switch.setOnClickListener {
 
@@ -97,6 +104,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // We setting the time with the help of the information we got from the PopTime Fragment .
+    // Android post O
     fun SetNotifications(Hours: Int, Minute: Int) {
         var Seconds = 0
         var alarmID = 454 // with using a different id , we can set up different notifications , under the same application .
@@ -110,6 +118,22 @@ class MainActivity : AppCompatActivity() {
         //    SaveData.setAlarm(Hours , Minute ,"Alarm Time")
     }
 
-    fun switchTester(Hours: Int, Minute: Int) {
+    //Set the notifications For O //
+    fun SetNotificationO(Hours: Int, Minute: Int) {
+        val saveData = SaveData(applicationContext)
+        var Seconds = 0
+        var alarmID = 454 // with using a different id , we can set up different notifications , under the same application .
+        tvShowTime.setText(Hours.toString() + ":" + Minute.toString())
+        saveData.SaveData(alarmID, Hours, Minute, Seconds, "Alarm Time Test O", "Alarm Time Test O") //SharedPreferences
+        saveData.createChannels()
+
+    }
+
+    // Go directly to the settings menu of the app.
+    fun goToNotificationSettings(channel: String) {
+        val i = Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+        i.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+        i.putExtra(Settings.EXTRA_CHANNEL_ID, channel)
+        startActivity(i)
     }
 }

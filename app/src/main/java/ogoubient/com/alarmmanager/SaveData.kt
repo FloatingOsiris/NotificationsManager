@@ -1,19 +1,27 @@
 package ogoubient.com.alarmmanager
 
-import android.app.AlarmManager
-import android.app.PendingIntent
+import android.app.*
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.Color
+import android.os.Build
 import android.widget.Toast
 import java.util.*
+import android.app.AlarmManager
+
+
+
+
 
 /**
  * Created by OceanSpray on 9/20/2017.
  */
 
 class SaveData {
+    val CHANNEL_ONE_ID = "ogoubient.com.alarmmanager.ONE"
+    val CHANNEL_ONE_NAME = "Hard Notifications"
 
     var context:Context?=null
     var sharedRef:SharedPreferences?=null
@@ -89,7 +97,49 @@ class SaveData {
         am.setRepeating(AlarmManager.RTC_WAKEUP,calendar.timeInMillis,AlarmManager.INTERVAL_DAY,pi)
 
     }
-// Cancel the Alarm
+
+
+    //Create Channels for Android O
+    fun createChannels() {
+        val nm = context!!.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val am = context!!.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val alarmID: Int = getalarmID()
+        val hour: Int = getHour()
+        val minute: Int = getMinute()
+        val note_title: String = getNoteTitle()
+        val note: String = getNote()
+        val calendar = Calendar.getInstance()
+        var alarm_intent = Intent(context, myBroadcastReceiver::class.java)
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Create Channel
+            val notificationChannel = NotificationChannel(CHANNEL_ONE_ID, CHANNEL_ONE_NAME, NotificationManager.IMPORTANCE_HIGH)
+            notificationChannel.enableLights(true)
+            notificationChannel.lightColor = Color.RED
+            notificationChannel.setShowBadge(true)
+            notificationChannel.enableVibration(true)
+            notificationChannel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+
+            nm.createNotificationChannel(notificationChannel)
+
+            //Set Alarm
+            calendar.set(Calendar.HOUR_OF_DAY, hour)
+            calendar.set(Calendar.MINUTE, minute)
+            calendar.set(Calendar.SECOND, 0)
+            //  alarm_intent.putExtra("alarmID",alarmID)
+            alarm_intent.putExtra("note", note)
+            alarm_intent.putExtra("note_title", note_title)
+            alarm_intent.action = "ogoubient.com.alarmmanager"
+
+            val pi = PendingIntent.getBroadcast(context, alarmID, alarm_intent, 0)
+            am.cancel(pi)
+            am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, AlarmManager.INTERVAL_DAY, pi)
+
+        }
+    }
+
+    // Cancel the Alarm
     fun cancelAlarm() {
         val alarmID:Int=getalarmID()
         val note_title:String=getNoteTitle()
